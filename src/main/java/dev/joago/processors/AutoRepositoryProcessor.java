@@ -83,7 +83,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
                             """.formatted(classname,
                         f.getSimpleName().toString().substring(0, 1).toUpperCase()
                                 + f.getSimpleName().toString().substring(1),
-                        "Object", f.getSimpleName()));
+                        "Object", toSnakeCase(f.getSimpleName().toString())));
             });
             StringBuilder querySb = new StringBuilder();
             StringBuilder fieldSb = new StringBuilder();
@@ -112,6 +112,10 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
 
         }
 
+    }
+
+    private String toSnakeCase(String s){
+        return s.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
 
     @Override
