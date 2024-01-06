@@ -1,5 +1,7 @@
+dev\joago\annotations\AutoRepository.class
 dev\joago\processors\AutoRepositoryProcessor.class
 dev\joago\annotations\Field.class
-dev\joago\annotations\AutoRepository.class
+dev\joago\enums\PrimaryKeyTypes.class
+dev\joago\processors\AutoRepositoryProcessor$1.class
 dev\joago\exceptions\IncompatibleAnnotationException.class
 dev\joago\Main.class

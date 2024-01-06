@@ -21,11 +21,13 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
 import dev.joago.annotations.Field;
+import dev.joago.enums.PrimaryKeyTypes;
 import dev.joago.exceptions.IncompatibleAnnotationException;
 import org.springframework.core.annotation.AnnotationConfigurationException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
@@ -54,13 +56,24 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
 
     }
 
+    private String getElementType(PrimaryKeyTypes primaryKeyType){
+        switch (primaryKeyType){
+            case LONG: return "Long";
+            case INTEGER: return "Integer";
+            case STRING: return "String";
+        }
+        return "Integer";
+    }
+
     public void createAutoRepository(Element element) throws IOException, IncompatibleAnnotationException {
 
         final String classname = element.getSimpleName().toString();
         final String packagename = element.getEnclosingElement().toString();
-
+        final String primaryKeyType = getElementType(element.getAnnotation(AutoRepository.class).primaryKeyType());
         final String completeClassame = "%sAutoRepository".formatted(classname);
         final String completePackagename = "%s.%s".formatted(packagename, completeClassame);
+
+
 
         List<? extends Element> enclosedElements = element.getEnclosedElements();
 
@@ -81,12 +94,13 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
             out.println("package %s;".formatted(packagename));
             out.println("\nimport %s;".formatted(PagingAndSortingRepository.class.getName()));
+            out.println("import %s;".formatted(JpaRepository.class.getName()));
             out.println("import %s;".formatted(Pageable.class.getName()));
-            out.println("import %s;".formatted(Param.class.getName()));
             out.println("import %s;".formatted(Page.class.getName()));
+            out.println("import %s;".formatted(Param.class.getName()));
             out.println("import %s;".formatted(Query.class.getName()));
-            out.println("\npublic interface %s extends PagingAndSortingRepository<%s, Integer> {\n"
-                    .formatted(completeClassame, classname));
+            out.println("\npublic interface %s extends PagingAndSortingRepository<%s, %s>, JpaRepository<%s, %s> {\n"
+                    .formatted(completeClassame, classname, primaryKeyType, classname, primaryKeyType));
 
             fields.forEach(f -> {
                 out.println("""

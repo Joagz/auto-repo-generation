@@ -5,14 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8058582e-0011-422f-931a-0db9066d12ff" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/dev/joago/exceptions/IncompatibleAnnotationException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jpa-buddy.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/dev/joago/enums/PrimaryKeyTypes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dev/joago/annotations/AutoRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dev/joago/annotations/AutoRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dev/joago/processors/AutoRepositoryProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dev/joago/processors/AutoRepositoryProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/autorepository-1.0.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/autorepository-1.0.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dev/joago/annotations/AutoRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dev/joago/annotations/AutoRepository.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/dev/joago/processors/AutoRepositoryProcessor.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dev/joago/processors/AutoRepositoryProcessor.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/compile-project/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/compile-project/inputFiles.lst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
@@ -26,6 +24,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Enum" />
+        <option value="Kotlin Class" />
         <option value="Class" />
       </list>
     </option>
@@ -50,15 +50,18 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/joago/OneDrive/Desktop/Annotations/demo",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2"
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "MavenSettings"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
+      <recent name="dev.joago.enum" />
       <recent name="dev.joago.exceptions" />
     </key>
   </component>
