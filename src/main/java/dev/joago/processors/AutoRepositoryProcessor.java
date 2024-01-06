@@ -1,8 +1,9 @@
 package dev.joago.processors;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Field;
+import java.lang.annotation.AnnotationTypeMismatchException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,10 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
+import dev.joago.annotations.Field;
+import dev.joago.exceptions.IncompatibleAnnotationException;
+import org.springframework.core.annotation.AnnotationConfigurationException;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +32,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import com.google.auto.service.AutoService;
 
 import dev.joago.annotations.AutoRepository;
+import org.springframework.data.repository.query.Param;
 
 @AutoService(Processor.class)
 @SupportedAnnotationTypes("dev.joago.annotations.AutoRepository")
@@ -40,7 +46,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
                 t -> {
                     try {
                         createAutoRepository(t);
-                    } catch (IOException e) {
+                    } catch (IOException | IncompatibleAnnotationException e) {
                         e.printStackTrace();
                     }
                 }));
@@ -48,7 +54,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
 
     }
 
-    public void createAutoRepository(Element element) throws IOException {
+    public void createAutoRepository(Element element) throws IOException, IncompatibleAnnotationException {
 
         final String classname = element.getSimpleName().toString();
         final String packagename = element.getEnclosingElement().toString();
@@ -61,8 +67,12 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
         Set<Element> fields = new HashSet<>();
 
         for (Element e : enclosedElements) {
-            if (e.getKind() == ElementKind.FIELD && e.getAnnotation(dev.joago.annotations.Field.class) != null) {
-                fields.add(e);
+            if(e.getKind() == ElementKind.FIELD) {
+                if ( e.getAnnotation(Id.class)  == null && e.getAnnotation(dev.joago.annotations.Field.class) != null){
+                    fields.add(e);
+                } else if(e.getAnnotation(Id.class)  != null) {
+                    throw new IncompatibleAnnotationException(Id.class.getName(), dev.joago.annotations.Field.class.getName());
+                }
             }
         }
 
@@ -72,6 +82,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
             out.println("package %s;".formatted(packagename));
             out.println("\nimport %s;".formatted(PagingAndSortingRepository.class.getName()));
             out.println("import %s;".formatted(Pageable.class.getName()));
+            out.println("import %s;".formatted(Param.class.getName()));
             out.println("import %s;".formatted(Page.class.getName()));
             out.println("import %s;".formatted(Query.class.getName()));
             out.println("\npublic interface %s extends PagingAndSortingRepository<%s, Integer> {\n"
@@ -86,25 +97,23 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
                         "Object", toSnakeCase(f.getSimpleName().toString())));
             });
             StringBuilder querySb = new StringBuilder();
-            StringBuilder fieldSb = new StringBuilder();
             String dbName = element.getAnnotation(AutoRepository.class).databaseName();
 
             querySb.append("SELECT * FROM %s WHERE ".formatted(dbName));
 
             fields.forEach(f -> {
-                fieldSb.append("Object %s,".formatted(f.getSimpleName()));
-                querySb.append("\n\t\t(:%s IS NULL OR %s LIKE :%s) AND".formatted(toSnakeCase(f.getSimpleName().toString()), toSnakeCase(f.getSimpleName().toString()),
-                        toSnakeCase(f.getSimpleName().toString())));
+                    querySb.append("\n\t\t(:#{#query.%s} IS NULL OR %s LIKE :#{#query.%s}) AND".formatted(toSnakeCase(f.getSimpleName().toString()), toSnakeCase(f.getSimpleName().toString()),
+                            toSnakeCase(f.getSimpleName().toString())));
             });
-            fieldSb.deleteCharAt(fieldSb.length() - 1);
+
             querySb.delete(querySb.length() - 4, querySb.length());
 
             out.println("""
                         @Query(nativeQuery = true, value=\"""
                             %s
                             \""")
-                        public Page<%s> findQuery(%s, Pageable pageable);
-                    """.formatted(querySb.toString(), classname, fieldSb.toString()));
+                        public Page<%s> findQuery(@Param("query") Object %s, Pageable pageable);
+                    """.formatted(querySb.toString(), classname, "queryDto"));
 
             out.println("\n}");
 

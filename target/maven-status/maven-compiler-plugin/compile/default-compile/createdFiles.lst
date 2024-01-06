@@ -1,4 +1,5 @@
 dev\joago\processors\AutoRepositoryProcessor.class
 dev\joago\annotations\Field.class
 dev\joago\annotations\AutoRepository.class
+dev\joago\exceptions\IncompatibleAnnotationException.class
 dev\joago\Main.class
