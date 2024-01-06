@@ -1,9 +1,7 @@
 package dev.joago.processors;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.annotation.AnnotationTypeMismatchException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,11 +18,9 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
-import dev.joago.annotations.Field;
 import dev.joago.enums.PrimaryKeyTypes;
 import dev.joago.exceptions.IncompatibleAnnotationException;
-import org.springframework.core.annotation.AnnotationConfigurationException;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.Id;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -70,10 +66,8 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
         final String classname = element.getSimpleName().toString();
         final String packagename = element.getEnclosingElement().toString();
         final String primaryKeyType = getElementType(element.getAnnotation(AutoRepository.class).primaryKeyType());
-        final String completeClassame = "%sAutoRepository".formatted(classname);
-        final String completePackagename = "%s.%s".formatted(packagename, completeClassame);
-
-
+        final String completeClassname = "%sAutoRepository".formatted(classname);
+        final String completePackagename = "%s.%s".formatted(packagename, completeClassname);
 
         List<? extends Element> enclosedElements = element.getEnclosedElements();
 
@@ -100,7 +94,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
             out.println("import %s;".formatted(Param.class.getName()));
             out.println("import %s;".formatted(Query.class.getName()));
             out.println("\npublic interface %s extends PagingAndSortingRepository<%s, %s>, JpaRepository<%s, %s> {\n"
-                    .formatted(completeClassame, classname, primaryKeyType, classname, primaryKeyType));
+                    .formatted(completeClassname, classname, primaryKeyType, classname, primaryKeyType));
 
             fields.forEach(f -> {
                 out.println("""
