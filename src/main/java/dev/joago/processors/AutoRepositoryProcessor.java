@@ -93,8 +93,8 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
 
             fields.forEach(f -> {
                 fieldSb.append("Object %s,".formatted(f.getSimpleName()));
-                querySb.append("\n\t\t(:%s IS NULL OR %s LIKE :%s) AND".formatted(f.getSimpleName(), f.getSimpleName(),
-                        f.getSimpleName()));
+                querySb.append("\n\t\t(:%s IS NULL OR %s LIKE :%s) AND".formatted(toSnakeCase(f.getSimpleName().toString()), toSnakeCase(f.getSimpleName().toString()),
+                        toSnakeCase(f.getSimpleName().toString())));
             });
             fieldSb.deleteCharAt(fieldSb.length() - 1);
             querySb.delete(querySb.length() - 4, querySb.length());
@@ -114,8 +114,14 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
 
     }
 
-    private String toSnakeCase(String s){
-        return s.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    private String toSnakeCase(String str) {
+        String regex = "([a-z])([A-Z]+)";
+        String replacement = "$1_$2";
+        str = str
+                .replaceAll(
+                        regex, replacement)
+                .toLowerCase();
+        return str;
     }
 
     @Override
