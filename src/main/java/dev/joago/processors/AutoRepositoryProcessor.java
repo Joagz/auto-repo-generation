@@ -190,7 +190,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
                         @Query(nativeQuery = true, value=\"""
                             %s
                             \""")
-                        public Page<%s> findQuery(@Param("query") Object %s, Pageable pageable);
+                        public %s findQuery(@Param("query") Object %s);
                     """.formatted(querySb.toString(), classname, "queryDto"));
 
             out.println("\n}");
@@ -246,7 +246,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
                         @Query(value=\"""
                             %s
                             \""")
-                        public Page<%s> findQuery(@Param("query") Object %s, Pageable pageable);
+                        public %s findQuery(@Param("query") Object %s);
                     """.formatted(querySb.toString(), classname, "queryDto"));
 
             out.println("\n}");
