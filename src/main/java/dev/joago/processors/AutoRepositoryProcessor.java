@@ -168,7 +168,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
 
             fields.forEach(f -> {
                 out.println("""
-                        \tpublic Page<%s> findBy%s(%s %s, Pageable pageable);
+                        \tpublic %s findBy%s(%s %s, Pageable pageable);
                             """.formatted(classname,
                         f.getSimpleName().toString().substring(0, 1).toUpperCase()
                                 + f.getSimpleName().toString().substring(1),
@@ -190,7 +190,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
                         @Query(nativeQuery = true, value=\"""
                             %s
                             \""")
-                        public %s findQuery(@Param("query") Object %s);
+                        public Page<%s> findQuery(@Param("query") Object %s);
                     """.formatted(querySb.toString(), classname, "queryDto"));
 
             out.println("\n}");
@@ -224,7 +224,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
 
             fields.forEach(f -> {
                 out.println("""
-                        \tpublic Page<%s> findBy%s(%s %s, Pageable pageable);
+                        \tpublic %s findBy%s(%s %s, Pageable pageable);
                             """.formatted(classname,
                         f.getSimpleName().toString().substring(0, 1).toUpperCase()
                                 + f.getSimpleName().toString().substring(1),
@@ -246,7 +246,7 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
                         @Query(value=\"""
                             %s
                             \""")
-                        public %s findQuery(@Param("query") Object %s);
+                        public Page<%s> findQuery(@Param("query") Object %s);
                     """.formatted(querySb.toString(), classname, "queryDto"));
 
             out.println("\n}");
