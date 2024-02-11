@@ -16,6 +16,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.tools.JavaFileObject;
 
 import dev.joago.enums.PrimaryKeyTypes;
@@ -41,50 +42,42 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
     String PageableImport = "org.springframework.data.domain.Pageable";
     String PageImport = "org.springframework.data.domain.Page";
     String ParamImport = "org.springframework.data.repository.query.Param";
-    String QueryImport = "org.springframework.data.mongodb.repository.Query";
+    String QueryImportMongo = "org.springframework.data.mongodb.repository.Query";
+    String QueryImportJpa = "org.springframework.data.jpa.repository.Query";
     String MongoRepositoryImport = "org.springframework.data.mongodb.repository.MongoRepository";
 
-    public boolean checkDependencies() {
+    public void checkDependencies() {
         try {
             Class.forName(PageableImport);
             Class.forName(PageImport);
             Class.forName(ParamImport);
-            Class.forName(QueryImport);
         } catch (ClassNotFoundException e) {
-            System.err.println("Your project requires jakarta.persistence dependency to work with AutoRepository");
-            return false;
+            System.err.println("[WARNING] Your project requires jakarta.persistence dependency to work with AutoRepository");
         }
         try {
             Class.forName(MongoRepositoryImport);
+            Class.forName(QueryImportMongo);
+
         } catch (ClassNotFoundException e) {
             try {
                 Class.forName(PagingAndSortingRepositoryImport);
                 Class.forName(JpaRepositoryImport);
+                Class.forName(QueryImportJpa);
+
             } catch (ClassNotFoundException ex) {
                 System.err.println("Your project requires either Spring Data MongoDB or Spring Data JPA to work with AutoRepository");
-                return false;
             }
         }
-        return true;
     }
 
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        if (checkDependencies()) {
-            annotations.forEach(annotation -> roundEnv.getElementsAnnotatedWith(AutoRepository.class).forEach(
-                    t -> {
-                        try {
-                            determineRepositoryType(t);
-                        } catch (IOException | IncompatibleAnnotationException | ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                    }));
-            return true;
-        } else {
-            return false;
-        }
-
+        annotations.forEach(annotation -> roundEnv.getElementsAnnotatedWith(AutoRepository.class).forEach(
+                t -> {
+                    determineRepositoryType(t);
+                }));
+        return true;
     }
 
     private String getElementType(PrimaryKeyTypes primaryKeyType) {
@@ -99,20 +92,31 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
         return "Integer";
     }
 
-    private void determineRepositoryType(Element element) throws IOException, IncompatibleAnnotationException, ClassNotFoundException {
+    private void determineRepositoryType(Element element) {
+        Class Document = null;
+        Class Entity = null;
+        try {
+            Entity = Class.forName("jakarta.persistence.Entity");
 
-        Class Entity = Class.forName("jakarta.persistence.Entity");
-        Class Document = Class.forName("org.springframework.data.mongodb.core.mapping.Document");
+            if (element.getAnnotation(Entity) != null)
+                createJpaRepository(element);
 
-        if (element.getAnnotation(Entity) != null)
-            createJpaRepository(element);
-        else if (element.getAnnotation(Document) != null)
-            createMongoRepository(element);
-        else createJpaRepository(element);
+        } catch (IOException | ClassNotFoundException ex) {
+            try {
+                Document = Class.forName("org.springframework.data.mongodb.core.mapping.Document");
+
+                if (element.getAnnotation(Document) != null)
+                    createMongoRepository(element);
+
+            } catch (ClassNotFoundException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
 
     }
 
-    public void cleanBuilderProperties(){
+    public void cleanBuilderProperties() {
         classname = null;
         packagename = null;
         primaryKeyType = null;
@@ -162,18 +166,23 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
             out.println("import %s;".formatted(PageableImport));
             out.println("import %s;".formatted(PageImport));
             out.println("import %s;".formatted(ParamImport));
-            out.println("import %s;".formatted(QueryImport));
+            out.println("import %s;".formatted(QueryImportJpa));
             out.println("\npublic interface %s extends PagingAndSortingRepository<%s, %s>, JpaRepository<%s, %s> {\n"
                     .formatted(completeClassname, classname, primaryKeyType, classname, primaryKeyType));
 
             fields.forEach(f -> {
+                VariableElement variableElement = (VariableElement) f;
+
+                String fieldName = variableElement.getSimpleName().toString();
+                String fieldType = variableElement.asType().toString();
+
                 out.println("""
                         \tpublic %s findBy%s(%s %s);
-                            """.formatted(classname,
-                        f.getSimpleName().toString().substring(0, 1).toUpperCase()
-                                + f.getSimpleName().toString().substring(1),
-                        "Object", toSnakeCase(f.getSimpleName().toString())));
+                        """.formatted(classname,
+                        capitalizeFirstLetter(fieldName),
+                        fieldType, toSnakeCase(fieldName)));
             });
+
             StringBuilder querySb = new StringBuilder();
             String dbName = element.getAnnotation(AutoRepository.class).databaseName();
 
@@ -218,18 +227,24 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
             out.println("import %s;".formatted(PageableImport));
             out.println("import %s;".formatted(PageImport));
             out.println("import %s;".formatted(ParamImport));
-            out.println("import %s;".formatted(QueryImport));
+            out.println("import %s;".formatted(QueryImportMongo));
             out.println("\npublic interface %s extends MongoRepository<%s, %s> {\n"
                     .formatted(completeClassname, classname, primaryKeyType));
 
             fields.forEach(f -> {
+                VariableElement variableElement = (VariableElement) f;
+
+                String fieldName = variableElement.getSimpleName().toString();
+                String fieldType = variableElement.asType().toString();
+
                 out.println("""
                         \tpublic %s findBy%s(%s %s);
-                            """.formatted(classname,
-                        f.getSimpleName().toString().substring(0, 1).toUpperCase()
-                                + f.getSimpleName().toString().substring(1),
-                        "Object", toSnakeCase(f.getSimpleName().toString())));
+                        """.formatted(classname,
+                        capitalizeFirstLetter(fieldName),
+                        fieldType, toSnakeCase(fieldName)));
             });
+
+
             StringBuilder querySb = new StringBuilder();
 
             querySb.append("{");
@@ -265,6 +280,10 @@ public class AutoRepositoryProcessor extends AbstractProcessor {
                         regex, replacement)
                 .toLowerCase();
         return str;
+    }
+
+    private String capitalizeFirstLetter(String input) {
+        return input.substring(0, 1).toUpperCase() + input.substring(1);
     }
 
     @Override
